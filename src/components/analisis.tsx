@@ -49,7 +49,8 @@ import {
 // import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // import {storage} from '../firebaseConfig'; // Importa la inicialización de Firebase
 
-// import {uploadVideoToFirebase} from '../services/firebase'
+import {uploadVideoToFirebase} from '../services/firebase'
+import { MessageData, sendMessageToSQS } from "@/services/sqsService";
 
 const SUBSCRIPTION_KEY = process.env.NEXT_PUBLIC_AZURE_KEY;
 const REGION = "eastus";
@@ -78,7 +79,7 @@ function detectMobile() {
   }
 }
 
-export default function Temp() {
+export default function Analysis() {
    // Simulated static data from API
    const personName = "Magali Elizabeth Pedraza Lopez";
    const imageUrl = "https://i.pravatar.cc/300";
@@ -201,90 +202,6 @@ export default function Temp() {
     setCanRecording("default");
   }, [handleStopRecording, handleDeleteVideo, resetRecording, resetTranscript]);
 
-  // const handleNext = useCallback(() => {
-  //   const blob = new Blob(recorderChunks, { type: "video/webm" });
-  //   const result = await uploadVideoToFirebase(blob)
-  //   if (result !== "400") {
-      
-  //     if (currentStep < 4) {
-  //       setCurrentStep((prev) => prev + 1);
-  //       const questions = [
-  //         "¿Cómo describirías las estrategias, métodos y técnicas que el docente utilizó para enseñarte, y cómo influyeron en el ambiente de aprendizaje?",
-  //         "¿Cómo fue tu experiencia con las evaluaciones y la comunicación del docente durante el curso?",
-  //         "¿Cómo fue el uso de tecnologías de la información y comunicación en el curso, y cómo contribuyeron a tu aprendizaje?"
-  //       ];
-  //       setCurrentQuestion(questions[currentStep - 1]);
-  //       handleResetRecording();
-  //     }
-  //   }
-  // }, [currentStep, handleResetRecording]);
-
-  // Asegúrate de que esta función esté declarada como 'async'
-  // const handleUploadAndProceed = async () => {
-  //   try {
-  //     toast.dismiss()
-  //     toast.loading('subiendo video.', {
-  //       position: 'top-right',
-  //       richColors: true,
-  //     });
-      
-  //     const metadata = {
-  //       contentType: 'video/webm',
-  //       customMetadata: {
-  //         'idStudent': idStudent,
-  //         'idTeacher': idTeacher,
-  //         'idCourse': idCourse,
-  //         'aspect': currentStep // Convierte a string si es necesario
-  //       }
-  //     }
-  //     // Esperar a que se resuelva la promesa y obtener el resultado
-  //     const blob = new Blob(recorderChunks, { type: "video/webm" });
-  //     const result = await uploadVideoToFirebase(blob, metadata);
-
-  //     // Validar el resultado
-  //     if (result !== "400") {
-  //       toast.dismiss()
-  //       toast.success('Video guardado correctamente.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //       console.log("Video subido correctamente:", result);
-
-  //       // Si la subida fue exitosa, continuar con la siguiente pregunta
-  //       if (currentStep < 4) {
-  //         setCurrentStep((prev) => prev + 1);
-
-  //         const questions = [
-  //           "¿Cómo describirías las estrategias, métodos y técnicas que el docente utilizó para enseñarte, y cómo influyeron en el ambiente de aprendizaje?",
-  //           "¿Cómo fue tu experiencia con las evaluaciones y la comunicación del docente durante el curso?",
-  //           "¿Cómo fue el uso de tecnologías de la información y comunicación en el curso, y cómo contribuyeron a tu aprendizaje?"
-  //         ];
-
-  //         // Actualiza la pregunta actual
-  //         setCurrentQuestion(questions[currentStep - 1]);
-
-  //         // Reiniciar la grabación
-  //         handleResetRecording();
-  //       }
-  //     } else {
-  //       console.error("Error en la subida del video.");
-  //       toast.dismiss()
-  //       toast.error('Error en la subida del video, intenta de nuevo.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Ocurrió un error durante el proceso de subida:", error);
-  //     toast.dismiss()
-  //       toast.error('Algo salio mal, intenta de nuevo.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //   }
-  // };
-
-
   if (!browserSupportsSpeechRecognition) {
     return (
       <div className="text-center p-4 text-red-500">
@@ -292,28 +209,13 @@ export default function Temp() {
       </div>
     );
   }
- 
-  // const uploadVideoToFirebase = async (blob: Blob, metadata: any): Promise<string> => {
-  //   // Crea una referencia en Firebase Storage para el archivo
-  //   const storageRef = ref(storage, `studentVideo/${idStudent}_${Date.now()}.webm`);
-
-  //   try {
-  //     // Sube el archivo Blob a Firebase Storage
-  //     const snapshot = await uploadBytes(storageRef, blob, metadata);
-  //     console.log("Archivo subido con éxito:", snapshot);
-
-  //     // Obtén la URL de descarga del archivo
-  //     const downloadURL = await getDownloadURL(snapshot.ref);
-  //     console.log("URL de descarga:", downloadURL);
-
-  //     // Devuelve la URL de descarga
-  //     return "200";
-  //   } catch (error) {
-  //     return "400"; // Lanza el error para que pueda ser manejado en la llamada
-  //   }
-  // };
 
   const handleUploadAndProceed = async () => {
+    if(transcript === "" || transcript === undefined){
+      toast.dismiss();
+      toast.error('No se ha realizado ninguna transcripción.', { position: 'top-right', richColors: true });
+      return;
+    }
     try {
       toast.dismiss();
       toast.loading('Subiendo video...', { position: 'top-right', richColors: true });
@@ -324,7 +226,8 @@ export default function Temp() {
           idStudent: idStudent,
           idTeacher: idTeacher,
           idCourse: idCourse,
-          aspect: currentStep.toString(), // Convierte a string si es necesario
+          aspect: currentStep, 
+          comment: transcript,
         },
       };
   
@@ -365,6 +268,23 @@ export default function Temp() {
     { id: "3", name: "Virtual Camera" },
   ];
 
+  const test = async () => {
+    const messageData: MessageData = {
+      idStudent: "metadata.customMetadata.idStudent",
+      idTeacher: "metadata.customMetadata.idTeacher",
+      idCourse: "metadata.customMetadata.idCourse",
+      aspect: 1, // Convierte a número si es necesario
+      video_url: "downloadURL",  // Usamos el URL de descarga del video
+    };
+    
+    try {
+      await sendMessageToSQS(messageData);
+      console.log('Mensaje enviado con éxito');
+    } catch (error) {
+      console.error('Error al enviar el mensaje:', error);
+    }
+  }
+ 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       <Card className="mb-6 relative overflow-hidden">
@@ -507,14 +427,13 @@ export default function Temp() {
             >
               <X className="w-4 h-4 mr-2" /> Finalizar
             </Button> */}
-            {/* <Button
-              onClick={handleNext}
+            <Button
+              onClick={test}
               variant="default"
               aria-label="Siguiente pregunta"
-              disabled={videoUrl === null}
             >
-              Siguiente <ChevronRight className="w-4 h-4 ml-2" />
-            </Button> */}
+              send sqs <ChevronRight className="w-4 h-4 ml-2" />
+            </Button>
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
