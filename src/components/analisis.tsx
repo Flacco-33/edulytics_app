@@ -52,6 +52,14 @@ import {
 import {uploadVideoToFirebase} from '../services/firebase'
 import { MessageData, sendMessageToSQS } from "@/services/sqsService";
 
+type AnalysisProps = {
+  personName: string
+  imageUrl: string
+  idStudent:string
+  idTeacher: string
+  idCourse: string
+}
+
 const SUBSCRIPTION_KEY = process.env.NEXT_PUBLIC_AZURE_KEY;
 const REGION = "eastus";
 const { SpeechRecognition: AzureSpeechRecognition } =
@@ -79,13 +87,19 @@ function detectMobile() {
   }
 }
 
-export default function Analysis() {
+export default function Analysis({
+  personName,
+  imageUrl,
+  idStudent,
+  idTeacher,
+  idCourse,
+}:AnalysisProps) {
    // Simulated static data from API
-   const personName = "Magali Elizabeth Pedraza Lopez";
-   const imageUrl = "https://i.pravatar.cc/300";
-   const idStudent = "20TE0164"
-   const idTeacher = "30TE8901"
-   const idCourse = "SistemasProgramables"
+  //  const personName = "Magali Elizabeth Pedraza Lopez";
+  //  const imageUrl = "https://i.pravatar.cc/300";
+  //  const idStudent = "13TL1234"
+  //  const idTeacher = "30TE8902"
+  //  const idCourse = "BasesFilosoficas"
 
 
   const [selectedDevice, setSelectedDevice] = useState("");
@@ -286,7 +300,7 @@ export default function Analysis() {
   }
  
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className=" ">
       <Card className="mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 rounded-bl-lg">
           <div className="flex items-center space-x-1">
@@ -427,13 +441,13 @@ export default function Analysis() {
             >
               <X className="w-4 h-4 mr-2" /> Finalizar
             </Button> */}
-            <Button
+            {/* <Button
               onClick={test}
               variant="default"
               aria-label="Siguiente pregunta"
             >
               send sqs <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+            </Button> */}
 
             <AlertDialog>
               <AlertDialogTrigger asChild>

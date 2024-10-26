@@ -1,18 +1,13 @@
 'use client'
-import 'regenerator-runtime/runtime'
-import Analysis from '@/components/analisis'
-import Analisis from '@/components/analisis'
-import Camera from '@/components/camera'
-import Dictaphone  from '@/components/dictaphone'
-import Temp from '@/components/temp'
-import React from 'react'
 
-const HomePAge = () => {
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import {LoginPage} from '@/components/login'
+
+const HomePage = () => {
   return (
-    <>
-    <Analysis/>
-    </>
+    <LoginPage />
   )
 }
 
-export default HomePAge
+export default HomePage

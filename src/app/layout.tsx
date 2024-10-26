@@ -18,10 +18,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
-        <Toaster />
-      </body>
-    </html>
+  <body className={inter.className}>
+    <header className="bg-primary text-primary-foreground py-4">
+      <div className="container mx-auto px-4">
+        <h1 className="text-2xl font-bold">Sistema de Evaluación Docente</h1>
+      </div>
+    </header>
+
+    <div>
+      {children}
+    </div>
+
+    <Toaster />
+
+    <footer className="bg-gray-100 py-4">
+      <div className="container mx-auto px-4 text-center text-sm text-gray-600">
+        © 2023 Sistema de Evaluación Docente. Todos los derechos reservados.
+      </div>
+    </footer>
+  </body>
+</html>
+
   );
 }
