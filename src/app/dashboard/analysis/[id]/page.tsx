@@ -1,5 +1,5 @@
 'use client'
-
+import "regenerator-runtime/runtime";
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Analysis from '@/components/analisis'
