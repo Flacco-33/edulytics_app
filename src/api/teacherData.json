@@ -1,0 +1,9 @@
+[
+    { "id": "1", "name": "María González", "subject": "Matemáticas", "imageUrl": "https://i.pravatar.cc/150?img=1", "idCourse":"mate1","analyzed":"False"},
+    { "id": "2", "name": "Juan Pérez", "subject": "Historia", "imageUrl": "https://i.pravatar.cc/150?img=2", "idCourse":"histo2","analyzed":"True"},
+    { "id": "3", "name": "Ana Rodríguez", "subject": "Biología", "imageUrl": "https://i.pravatar.cc/150?img=3", "idCourse":"biolo3","analyzed":"False"},
+    { "id": "4", "name": "Carlos Sánchez", "subject": "Física", "imageUrl": "https://i.pravatar.cc/150?img=4", "idCourse":"fis3","analyzed":"True"},
+    { "id": "5", "name": "Laura Martínez", "subject": "Literatura", "imageUrl": "https://i.pravatar.cc/150?img=5","idCourse":"lit4","analyzed":"False" },
+    { "id": "6", "name": "Pedro Ramírez", "subject": "Química", "imageUrl": "https://i.pravatar.cc/150?img=6","idCourse":"quim5","analyzed":"True" }
+]
+  

@@ -1,34 +1,48 @@
-import React, { useEffect } from 'react';
-import createPonyfill from 'web-speech-cognitive-services/lib/SpeechServices';
-import DictateButton from 'react-dictate-button';
+'use client';
+import createSpeechServicesPonyfill from 'web-speech-cognitive-services'
 
-const SpeechDictation = () => {
-  const [SpeechGrammarList, SpeechRecognition] = SpeechRecognition();
+import React from 'react';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-  useEffect(() => {
-    const initializeSpeech = async () => {
-      const { SpeechGrammarList, SpeechRecognition } = await createPonyfill({
-        credentials: {
-          region: 'westus',
-          subscriptionKey: 'YOUR_SUBSCRIPTION_KEY',
-        },
-      });
 
-      // Aquí podrías hacer cualquier configuración adicional
-    };
+if (typeof document !== 'undefined') {
+  console.log("HOLAAAAAAAAAAAAAA")
+}else{
+  console.log("no documen")
+}
 
-    initializeSpeech();
-  }, []);
+const Dictaphone = () => {
+
+  const SUBSCRIPTION_KEY = process.env.NEXT_PUBLIC_AZURE_KEY
+const REGION = 'eastus'
+const { SpeechRecognition: AzureSpeechRecognition } = createSpeechServicesPonyfill({
+  credentials: {
+    region: REGION,
+    subscriptionKey: SUBSCRIPTION_KEY,
+  }
+})
+SpeechRecognition.applyPolyfill(AzureSpeechRecognition)
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+
+  if (!browserSupportsSpeechRecognition) {
+    return <span>Browser doesn't support speech recognition.</span>;
+  }
 
   return (
-    <DictateButton
-      onDictate={({ result }) => alert(result.transcript)}
-      speechGrammarList={SpeechGrammarList}
-      speechRecognition={SpeechRecognition}
-    >
-      Start dictation
-    </DictateButton>
+    <div>
+      <p>Microphone: {listening ? 'on' : 'off'}</p>
+      <button onClick={SpeechRecognition.startListening}>Start</button>
+      <button onClick={SpeechRecognition.stopListening}>Stop</button>
+      <button onClick={resetTranscript}>Reset</button>
+      <p>{transcript}</p>
+    </div>
   );
 };
 
-export default SpeechDictation;
+export default Dictaphone;

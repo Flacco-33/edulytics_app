@@ -1,9 +1,10 @@
 "use client";
-//<reference types="node" />
 import "regenerator-runtime/runtime";
+import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {TeacherData} from '@/app/models/teacherData'
 import {
   Select,
   SelectContent,
@@ -49,7 +50,17 @@ import {
 // import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // import {storage} from '../firebaseConfig'; // Importa la inicialización de Firebase
 
-// import {uploadVideoToFirebase} from '../services/firebase'
+import {uploadVideoToFirebase} from '../services/firebase'
+import { MessageData, sendMessageToSQS } from "@/services/sqsService";
+
+type AnalysisProps = {
+  id: string
+  personName: string
+  imageUrl: string
+  // idStudent:string
+  idTeacher: string
+  idCourse: string
+}
 
 const SUBSCRIPTION_KEY = process.env.NEXT_PUBLIC_AZURE_KEY;
 const REGION = "eastus";
@@ -78,14 +89,20 @@ function detectMobile() {
   }
 }
 
-export default function Temp() {
-   // Simulated static data from API
-   const personName = "Magali Elizabeth Pedraza Lopez";
-   const imageUrl = "https://i.pravatar.cc/300";
-   const idStudent = "20TE0164"
-   const idTeacher = "30TE8901"
-   const idCourse = "SistemasProgramables"
-
+export default function Analysis({
+  id,
+  personName,
+  imageUrl,
+  idTeacher,
+  idCourse,
+}:AnalysisProps) {
+  const [teacherData, setTeacherData] = useState<TeacherData | null>(null)
+  const router = useRouter()
+  const idStudent = localStorage.getItem('controlNumber');
+  const storeData = localStorage.getItem('teacherData');
+  console.log("personName",personName)
+  console.log("idStudent",idStudent)
+  console.log("idCourse",idCourse)
 
   const [selectedDevice, setSelectedDevice] = useState("");
   const [visualizerDimensions, setVisualizerDimensions] = useState({
@@ -99,7 +116,6 @@ export default function Temp() {
   const [canRecording, setCanRecording] = useState<
     "destructive" | "default" | "disabled"
   >("default");
-  //isRecording ? "destructive" : "default"
   const [isMobile, setIsMobile] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -201,90 +217,6 @@ export default function Temp() {
     setCanRecording("default");
   }, [handleStopRecording, handleDeleteVideo, resetRecording, resetTranscript]);
 
-  // const handleNext = useCallback(() => {
-  //   const blob = new Blob(recorderChunks, { type: "video/webm" });
-  //   const result = await uploadVideoToFirebase(blob)
-  //   if (result !== "400") {
-      
-  //     if (currentStep < 4) {
-  //       setCurrentStep((prev) => prev + 1);
-  //       const questions = [
-  //         "¿Cómo describirías las estrategias, métodos y técnicas que el docente utilizó para enseñarte, y cómo influyeron en el ambiente de aprendizaje?",
-  //         "¿Cómo fue tu experiencia con las evaluaciones y la comunicación del docente durante el curso?",
-  //         "¿Cómo fue el uso de tecnologías de la información y comunicación en el curso, y cómo contribuyeron a tu aprendizaje?"
-  //       ];
-  //       setCurrentQuestion(questions[currentStep - 1]);
-  //       handleResetRecording();
-  //     }
-  //   }
-  // }, [currentStep, handleResetRecording]);
-
-  // Asegúrate de que esta función esté declarada como 'async'
-  // const handleUploadAndProceed = async () => {
-  //   try {
-  //     toast.dismiss()
-  //     toast.loading('subiendo video.', {
-  //       position: 'top-right',
-  //       richColors: true,
-  //     });
-      
-  //     const metadata = {
-  //       contentType: 'video/webm',
-  //       customMetadata: {
-  //         'idStudent': idStudent,
-  //         'idTeacher': idTeacher,
-  //         'idCourse': idCourse,
-  //         'aspect': currentStep // Convierte a string si es necesario
-  //       }
-  //     }
-  //     // Esperar a que se resuelva la promesa y obtener el resultado
-  //     const blob = new Blob(recorderChunks, { type: "video/webm" });
-  //     const result = await uploadVideoToFirebase(blob, metadata);
-
-  //     // Validar el resultado
-  //     if (result !== "400") {
-  //       toast.dismiss()
-  //       toast.success('Video guardado correctamente.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //       console.log("Video subido correctamente:", result);
-
-  //       // Si la subida fue exitosa, continuar con la siguiente pregunta
-  //       if (currentStep < 4) {
-  //         setCurrentStep((prev) => prev + 1);
-
-  //         const questions = [
-  //           "¿Cómo describirías las estrategias, métodos y técnicas que el docente utilizó para enseñarte, y cómo influyeron en el ambiente de aprendizaje?",
-  //           "¿Cómo fue tu experiencia con las evaluaciones y la comunicación del docente durante el curso?",
-  //           "¿Cómo fue el uso de tecnologías de la información y comunicación en el curso, y cómo contribuyeron a tu aprendizaje?"
-  //         ];
-
-  //         // Actualiza la pregunta actual
-  //         setCurrentQuestion(questions[currentStep - 1]);
-
-  //         // Reiniciar la grabación
-  //         handleResetRecording();
-  //       }
-  //     } else {
-  //       console.error("Error en la subida del video.");
-  //       toast.dismiss()
-  //       toast.error('Error en la subida del video, intenta de nuevo.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Ocurrió un error durante el proceso de subida:", error);
-  //     toast.dismiss()
-  //       toast.error('Algo salio mal, intenta de nuevo.', {
-  //         position: 'top-right',
-  //         richColors: true,
-  //       });
-  //   }
-  // };
-
-
   if (!browserSupportsSpeechRecognition) {
     return (
       <div className="text-center p-4 text-red-500">
@@ -292,28 +224,13 @@ export default function Temp() {
       </div>
     );
   }
- 
-  // const uploadVideoToFirebase = async (blob: Blob, metadata: any): Promise<string> => {
-  //   // Crea una referencia en Firebase Storage para el archivo
-  //   const storageRef = ref(storage, `studentVideo/${idStudent}_${Date.now()}.webm`);
-
-  //   try {
-  //     // Sube el archivo Blob a Firebase Storage
-  //     const snapshot = await uploadBytes(storageRef, blob, metadata);
-  //     console.log("Archivo subido con éxito:", snapshot);
-
-  //     // Obtén la URL de descarga del archivo
-  //     const downloadURL = await getDownloadURL(snapshot.ref);
-  //     console.log("URL de descarga:", downloadURL);
-
-  //     // Devuelve la URL de descarga
-  //     return "200";
-  //   } catch (error) {
-  //     return "400"; // Lanza el error para que pueda ser manejado en la llamada
-  //   }
-  // };
 
   const handleUploadAndProceed = async () => {
+    if(transcript === "" || transcript === undefined){
+      toast.dismiss();
+      toast.error('No se ha realizado ninguna transcripción.', { position: 'top-right', richColors: true });
+      return;
+    }
     try {
       toast.dismiss();
       toast.loading('Subiendo video...', { position: 'top-right', richColors: true });
@@ -324,13 +241,14 @@ export default function Temp() {
           idStudent: idStudent,
           idTeacher: idTeacher,
           idCourse: idCourse,
-          aspect: currentStep.toString(), // Convierte a string si es necesario
+          aspect: currentStep, 
+          comment: transcript,
         },
       };
   
       const blob = new Blob(recorderChunks, { type: 'video/webm' });
       const result = await uploadVideoToFirebase(blob, metadata);
-  
+      // const result = "200";
       if (result !== "400") {
         toast.dismiss();
         toast.success('Video guardado correctamente.', { position: 'top-right', richColors: true });
@@ -345,6 +263,20 @@ export default function Temp() {
           ];
           setCurrentQuestion(questions[currentStep - 1]);
           handleResetRecording();
+        }
+        if(currentStep ===4){
+          if(storeData){
+
+            const teacherDataArray = JSON.parse(storeData) as TeacherData[];
+            const teacherIndex = teacherDataArray.findIndex(teacher => teacher.id === id);
+            
+            if (teacherIndex !== -1) {
+              console.log("datos actualizados")
+              teacherDataArray[teacherIndex].analyzed = "True";
+              localStorage.setItem('teacherData', JSON.stringify(teacherDataArray));
+            }
+          }
+          router.push(`/dashboard`)
         }
       } else {
         console.error("Error en la subida del video.");
@@ -365,8 +297,9 @@ export default function Temp() {
     { id: "3", name: "Virtual Camera" },
   ];
 
+ 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className=" ">
       <Card className="mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 rounded-bl-lg">
           <div className="flex items-center space-x-1">
@@ -500,22 +433,7 @@ export default function Temp() {
             >
               <RotateCcw className="w-4 h-4 mr-2" /> Reiniciar
             </Button>
-            {/* <Button 
-              onClick={stopListening} 
-              variant="secondary"
-              aria-label="Finalizar grabación"
-            >
-              <X className="w-4 h-4 mr-2" /> Finalizar
-            </Button> */}
-            {/* <Button
-              onClick={handleNext}
-              variant="default"
-              aria-label="Siguiente pregunta"
-              disabled={videoUrl === null}
-            >
-              Siguiente <ChevronRight className="w-4 h-4 ml-2" />
-            </Button> */}
-
+            
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 

@@ -33,7 +33,7 @@ export const useSpeechRecording = () => {
     SpeechRecognition.abortListening();
     setIsRecording(false);
     if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.pause();
     }
     if (audioStream) {
       audioStream.getTracks().forEach(track => track.stop());
