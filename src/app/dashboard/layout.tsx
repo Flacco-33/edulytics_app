@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/sidebar";
+import { AuthProvider } from "@/context/AuthContext";
+
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,6 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
+    <AuthProvider>
     <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
       {/* Botón para abrir/cerrar el Sidebar en pantallas pequeñas */}
       <button
@@ -36,5 +39,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Contenido principal */}
       <div className="flex-grow p-2 md:p-5">{children}</div>
     </div>
+    </AuthProvider>
   );
 }

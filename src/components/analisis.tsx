@@ -1,9 +1,10 @@
 "use client";
-//<reference types="node" />
 import "regenerator-runtime/runtime";
+import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {TeacherData} from '@/app/models/teacherData'
 import {
   Select,
   SelectContent,
@@ -53,9 +54,10 @@ import {uploadVideoToFirebase} from '../services/firebase'
 import { MessageData, sendMessageToSQS } from "@/services/sqsService";
 
 type AnalysisProps = {
+  id: string
   personName: string
   imageUrl: string
-  idStudent:string
+  // idStudent:string
   idTeacher: string
   idCourse: string
 }
@@ -88,19 +90,19 @@ function detectMobile() {
 }
 
 export default function Analysis({
+  id,
   personName,
   imageUrl,
-  idStudent,
   idTeacher,
   idCourse,
 }:AnalysisProps) {
-   // Simulated static data from API
-  //  const personName = "Magali Elizabeth Pedraza Lopez";
-  //  const imageUrl = "https://i.pravatar.cc/300";
-  //  const idStudent = "13TL1234"
-  //  const idTeacher = "30TE8902"
-  //  const idCourse = "BasesFilosoficas"
-
+  const [teacherData, setTeacherData] = useState<TeacherData | null>(null)
+  const router = useRouter()
+  const idStudent = localStorage.getItem('controlNumber');
+  const storeData = localStorage.getItem('teacherData');
+  console.log("personName",personName)
+  console.log("idStudent",idStudent)
+  console.log("idCourse",idCourse)
 
   const [selectedDevice, setSelectedDevice] = useState("");
   const [visualizerDimensions, setVisualizerDimensions] = useState({
@@ -114,7 +116,6 @@ export default function Analysis({
   const [canRecording, setCanRecording] = useState<
     "destructive" | "default" | "disabled"
   >("default");
-  //isRecording ? "destructive" : "default"
   const [isMobile, setIsMobile] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -247,7 +248,7 @@ export default function Analysis({
   
       const blob = new Blob(recorderChunks, { type: 'video/webm' });
       const result = await uploadVideoToFirebase(blob, metadata);
-  
+      // const result = "200";
       if (result !== "400") {
         toast.dismiss();
         toast.success('Video guardado correctamente.', { position: 'top-right', richColors: true });
@@ -262,6 +263,20 @@ export default function Analysis({
           ];
           setCurrentQuestion(questions[currentStep - 1]);
           handleResetRecording();
+        }
+        if(currentStep ===4){
+          if(storeData){
+
+            const teacherDataArray = JSON.parse(storeData) as TeacherData[];
+            const teacherIndex = teacherDataArray.findIndex(teacher => teacher.id === id);
+            
+            if (teacherIndex !== -1) {
+              console.log("datos actualizados")
+              teacherDataArray[teacherIndex].analyzed = "True";
+              localStorage.setItem('teacherData', JSON.stringify(teacherDataArray));
+            }
+          }
+          router.push(`/dashboard`)
         }
       } else {
         console.error("Error en la subida del video.");
@@ -282,22 +297,6 @@ export default function Analysis({
     { id: "3", name: "Virtual Camera" },
   ];
 
-  const test = async () => {
-    const messageData: MessageData = {
-      idStudent: "metadata.customMetadata.idStudent",
-      idTeacher: "metadata.customMetadata.idTeacher",
-      idCourse: "metadata.customMetadata.idCourse",
-      aspect: 1, // Convierte a número si es necesario
-      video_url: "downloadURL",  // Usamos el URL de descarga del video
-    };
-    
-    try {
-      await sendMessageToSQS(messageData);
-      console.log('Mensaje enviado con éxito');
-    } catch (error) {
-      console.error('Error al enviar el mensaje:', error);
-    }
-  }
  
   return (
     <div className=" ">
@@ -434,21 +433,7 @@ export default function Analysis({
             >
               <RotateCcw className="w-4 h-4 mr-2" /> Reiniciar
             </Button>
-            {/* <Button 
-              onClick={stopListening} 
-              variant="secondary"
-              aria-label="Finalizar grabación"
-            >
-              <X className="w-4 h-4 mr-2" /> Finalizar
-            </Button> */}
-            {/* <Button
-              onClick={test}
-              variant="default"
-              aria-label="Siguiente pregunta"
-            >
-              send sqs <ChevronRight className="w-4 h-4 ml-2" />
-            </Button> */}
-
+            
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
