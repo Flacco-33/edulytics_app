@@ -1,7 +1,6 @@
-'use client'
 
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+// import 'regenerator-runtime/runtime'
+
 import {LoginPage} from '@/components/login'
 
 const HomePage = () => {

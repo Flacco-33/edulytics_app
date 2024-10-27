@@ -30,7 +30,7 @@ import WebCam from "react-webcam";
 
 import { useSpeechRecording } from "@/hooks/useSpeechRecording";
 import { formatTime } from "@/helpers/timeFormatter";
-
+// @ts-ignore
 import createSpeechServicesPonyfill from "web-speech-cognitive-services";
 import { useVideoRecording } from "@/hooks/useVideoRecording";
 import { useMediaPermissions } from "@/hooks/useMediaPermissions ";
@@ -52,6 +52,7 @@ import {
 
 import {uploadVideoToFirebase} from '../services/firebase'
 import { MessageData, sendMessageToSQS } from "@/services/sqsService";
+import Image from "next/image";
 
 type AnalysisProps = {
   id: string
@@ -100,6 +101,7 @@ export default function Analysis({
   const router = useRouter()
   const idStudent = localStorage.getItem('controlNumber');
   const storeData = localStorage.getItem('teacherData');
+  
   console.log("personName",personName)
   console.log("idStudent",idStudent)
   console.log("idCourse",idCourse)
